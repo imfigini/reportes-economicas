@@ -1,0 +1,1 @@
+Ver dentro de la carpeta "alumnos_proximos_a_recibirse"

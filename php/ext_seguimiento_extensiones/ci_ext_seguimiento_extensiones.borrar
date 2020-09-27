@@ -1,0 +1,142 @@
+<?php
+require_once('MisConsultas.php');
+
+class ci_ext_seguimiento_extensiones extends toba_ci
+{
+	//---- Cuadro Aprobados -----------------------------------------------------------------------
+
+	function get_alumnos_aprobaron_final_dentro_de_extension()
+	{
+		$db = MisConsultas::getConexion();
+		$sql = "SELECT DISTINCT M.nombre AS materia_nombre, COUNT(legajo) AS cantidad_aprobados
+					FROM rep_extensiones_cursada E, sga_materias M
+					WHERE E.fecha_final < E.f_prorroga_hasta
+						AND E.resultado_final = 'A'
+						AND E.materia = M.materia
+				GROUP BY M.nombre
+				ORDER BY M.nombre";
+		$result = $db->query($sql)->fetchAll(PDO::FETCH_ASSOC);
+		return $result;		
+	}
+	function conf__cuadro_aprobados(toba_ei_cuadro $cuadro)
+	{
+		$datos = $this->get_alumnos_aprobaron_final_dentro_de_extension();
+		$cuadro->set_datos($datos);
+	}
+
+	//---- Cuadro Reprobados -----------------------------------------------------------------------
+
+	function get_alumnos_reprobaron_final_dentro_de_extension()
+	{
+		$db = MisConsultas::getConexion();
+		$sql = "SELECT DISTINCT M.nombre AS materia_nombre, COUNT(legajo) AS cantidad_reprobados
+					FROM rep_extensiones_cursada E, sga_materias M
+					WHERE E.fecha_final < E.f_prorroga_hasta
+						AND E.resultado_final = 'R'
+						AND E.materia = M.materia
+						AND E.carrera||E.materia||E.legajo NOT IN 
+								(SELECT carrera||materia||legajo FROM rep_extensiones_cursada 
+										WHERE E.fecha_final < E.f_prorroga_hasta
+										AND E.resultado_final = 'A')
+				GROUP BY M.nombre
+				ORDER BY M.nombre";
+		$result = $db->query($sql)->fetchAll(PDO::FETCH_ASSOC);
+		return $result;		
+	}
+	function conf__cuadro_reprobados(toba_ei_cuadro $cuadro)
+	{
+		$datos = $this->get_alumnos_reprobaron_final_dentro_de_extension();
+		$cuadro->set_datos($datos);
+	}
+
+	//---- Cuadro No Rindieron -----------------------------------------------------------------------
+
+	function get_alumnos_no_rindieron_final_dentro_de_extension()
+	{
+		$db = MisConsultas::getConexion();
+		$sql = "SELECT DISTINCT M.nombre AS materia_nombre, COUNT(legajo) AS cantidad_no_rindieron
+					FROM rep_extensiones_cursada E, sga_materias M
+					WHERE E.f_prorroga_hasta < TODAY
+						AND E.resultado_final IS NULL
+						AND E.materia = M.materia
+				GROUP BY M.nombre
+				ORDER BY M.nombre";
+		$result = $db->query($sql)->fetchAll(PDO::FETCH_ASSOC);
+		return $result;		
+	}
+	function conf__cuadro_no_rindieron(toba_ei_cuadro $cuadro)
+	{
+		$datos = $this->get_alumnos_no_rindieron_final_dentro_de_extension();
+		$cuadro->set_datos($datos);
+	}
+
+	//---- Cuadro Aprobaron Libre -----------------------------------------------------------------------
+
+	function get_alumnos_aprobaron_libre()
+	{
+		$db = MisConsultas::getConexion();
+		$sql = "SELECT DISTINCT M.nombre AS materia_nombre, COUNT(legajo) AS cantidad_aprobaron_libre
+					FROM rep_extensiones_cursada E, sga_materias M
+					WHERE E.resultado_final = 'A'
+						AND E.fecha_final > E.f_prorroga_hasta	
+						AND E.materia = M.materia
+				GROUP BY M.nombre
+				ORDER BY M.nombre";
+		$result = $db->query($sql)->fetchAll(PDO::FETCH_ASSOC);
+		return $result;		
+	}
+	function conf__cuadro_aprobaron_libre(toba_ei_cuadro $cuadro)
+	{
+		$datos = $this->get_alumnos_aprobaron_libre();
+		$cuadro->set_datos($datos);
+	}
+
+	//---- Cuadro Nunca rindieron final -----------------------------------------------------------------------
+
+	function get_alumnos_nunca_rindieron()
+	{
+		$db = MisConsultas::getConexion();
+		$sql = "SELECT DISTINCT M.nombre AS materia_nombre, COUNT(legajo) AS cantidad_nunca_rindieron
+					FROM rep_extensiones_cursada E, sga_materias M
+					WHERE E.resultado_final IS NULL
+						AND E.f_prorroga_hasta < TODAY
+						AND E.materia = M.materia
+				GROUP BY M.nombre
+				ORDER BY M.nombre";
+		$result = $db->query($sql)->fetchAll(PDO::FETCH_ASSOC);
+		return $result;		
+	}
+	function conf__cuadro_nunca_rindieron(toba_ei_cuadro $cuadro)
+	{
+		$datos = $this->get_alumnos_nunca_rindieron();
+		$cuadro->set_datos($datos);
+	}
+
+	
+	//---- EVENTOS CI -------------------------------------------------------------------
+
+	function evt__agregar()
+	{
+		$this->set_pantalla('pant_edicion');
+	}
+
+	function evt__volver()
+	{
+		$this->resetear();
+	}
+
+	function evt__eliminar()
+	{
+		$this->dep('datos')->eliminar_todo();
+		$this->resetear();
+	}
+
+	function evt__guardar()
+	{
+		$this->dep('datos')->sincronizar();
+		$this->resetear();
+	}
+
+}
+
+?>
