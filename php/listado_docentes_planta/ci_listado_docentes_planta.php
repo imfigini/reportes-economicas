@@ -176,7 +176,7 @@ class ci_listado_docentes_planta extends toba_ci
             $usuario = 'd'.trim($legajo);
             $sql = "SELECT email FROM apex_usuario WHERE usuario = '$usuario'";
 
-            $e_mail = toba::db('toba_2_6')->consultar($sql);
+            $e_mail = toba::db('toba_2_7')->consultar($sql);
             //ei_arbol(array($usuario, $e_mail, $sql));
             if (isset($e_mail[0]['email']) && trim($e_mail[0]['email']) <> '')
             {

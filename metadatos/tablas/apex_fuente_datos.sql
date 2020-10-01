@@ -48,7 +48,7 @@ INSERT INTO apex_fuente_datos (proyecto, fuente_datos, descripcion, descripcion_
 );
 INSERT INTO apex_fuente_datos (proyecto, fuente_datos, descripcion, descripcion_corta, fuente_datos_motor, host, punto_montaje, subclase_archivo, subclase_nombre, orden, schema, instancia_id, administrador, link_instancia, tiene_auditoria, parsea_errores, permisos_por_tabla, usuario, clave, base) VALUES (
 	'Reportes', --proyecto
-	'toba_2_6', --fuente_datos
+	'toba_2_7', --fuente_datos
 	'Fuente Toba', --descripcion
 	NULL, --descripcion_corta
 	NULL, --fuente_datos_motor

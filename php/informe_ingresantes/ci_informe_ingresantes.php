@@ -26,8 +26,8 @@ class ci_informe_ingresantes extends toba_ci
 
 	//---- Cuadro -----------------------------------------------------------------------
 	//EN TODOS LOS CASOS:
-	//Se consideran sóo ingresantes nuevos, se descartan alumnos que ya venían de otra carrera o de otra facultad o universidad. 
-        //Sólo se consideran los que no tienen ninguna equivalencia. 
+	//Se consideran sÃ³lo ingresantes nuevos, se descartan alumnos que ya venÃ­an de otra carrera o de otra facultad o universidad. 
+        //SÃ³lo se consideran los que no tienen ninguna equivalencia. 
 	
 	//Cantidad de ingresantes por carrera
 	function conf__cuadro_ingresantes_carrera(toba_ei_cuadro $cuadro)
@@ -115,36 +115,6 @@ class ci_informe_ingresantes extends toba_ci
 			$total_ingresantes = consultas_ingresantes::get_cantidad_total_ingresantes($anio);
 			$form->set_datos($total_ingresantes);
 		}
-	}
-
-	function evt__formulario__alta($datos)
-	{
-		$this->dep('datos')->tabla('prueba')->set($datos);
-		$this->dep('datos')->sincronizar();
-		$this->resetear();
-	}
-
-	function evt__formulario__modificacion($datos)
-	{
-		$this->dep('datos')->tabla('prueba')->set($datos);
-		$this->dep('datos')->sincronizar();
-		$this->resetear();
-	}
-
-	function evt__formulario__baja()
-	{
-		$this->dep('datos')->eliminar_todo();
-		$this->resetear();
-	}
-
-	function evt__formulario__cancelar()
-	{
-		$this->resetear();
-	}
-
-	function resetear()
-	{
-		$this->dep('datos')->resetear();
 	}
 
 }

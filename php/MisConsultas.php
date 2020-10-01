@@ -3,129 +3,79 @@ require_once('parametros.php');
 
 class MisConsultas {
 		
-    static function get_parametros()
-    {
-        try {
-
-            if (DESARROLLO) 
-            {
-                $host = '10.1.1.71';
-                $server = 'ol_guarani2';
-		        $clave = 'informix761';
-            }
-            else 
-            {
-                $host = '10.1.1.69';
-                $server = 'ol_guarani';
-				$clave = '2LeCh1IH';
-            }
-
-            $usuario = 'informix';
-            $parametros = array('host'=>$host, 'server'=>$server, 'usuario'=>$usuario, 'clave'=>$clave);
-			
-            return $parametros;
-        }
-        catch(PDOException $e)
-        {
-            echo $e->getMessage();
-            die();
-        }
-    }
-
     static function getConexion () 
     {
         try 
         {
-            $parametros = MisConsultas::get_parametros();
-            $host = $parametros['host'];
-            $server = $parametros['server'];
-            $usr = $parametros['usuario'];
-            $clave = $parametros['clave'];
-            $database = "siu_guarani";
-            $strConexion = "informix:host=$host;service=1600;database=$database;server=$server;protocol=olsoctcp;EnableScrollableCursors=1";
+            $host = '10.254.4.225';
+            //$host = 'velben.fce.unicen';
+            $server = 'ol_guarani';
+            $puerto = 1977;
+            $protocol = 'onsoctcp';
+            $database = 'siu_guarani';
+            $usr = 'informix';
+            $clave = 'informix';                    
+            
+            $strConexion = "informix:host=$host;service=$puerto;database=$database;server=$server;protocol=$protocol;EnableScrollableCursors=1";
             $conexion = new PDO($strConexion, "$usr", "$clave");
             return $conexion;
         }
         catch(PDOException $e)
         {
+            ei_arbol($e->getMessage(), 'error');
             toba::notificacion()->agregar($e->getMessage());
             die();
         }
-    }
-
-    static function getConexionPostgrado () 
-    {
-        try 
+        catch(Exception $e)
         {
-            $parametros = MisConsultas::get_parametros();
-            if (DESARROLLO)
-            {
-                $host = $parametros['host'];
-                $server = $parametros['server'];
-                $usr = $parametros['usuario'];
-                $clave = $parametros['clave'];
-                $database = "exap_guarani";
-                $service = 1600;
-            }
-            else {
-                $host = 'rproxy.exa.unicen.edu.ar';
-                $server = 'informix';
-                $usr = 'informix';
-                $clave = 'in4mix';
-                $database = "exap_guarani";
-                $service = 9098;
-            }
-            $strConexion = "informix:host=$host;service=$service;database=$database;server=$server;protocol=olsoctcp;EnableScrollableCursors=1";
-            $conexion = new PDO($strConexion, "$usr", "$clave");
-
-//			$strConexion = "informix:host=10.1.1.71;service=1600;database=exap_guarani;server=ol_guarani2;protocol=olsoctcp;EnableScrollableCursors=1";
-//			$conexion = new PDO($strConexion, "informix", "informix761");
-            return $conexion;
-        }
-        catch(PDOException $e)
-        {
-            echo $e->getMessage();
+            ei_arbol($e->getMessage(), 'error');
             die();
         }
     }
-		
-    static function getConexionMini ($anio = NULL) 
+
+    static function addFakeId($datos) 
     {
-        try 
+        $resultado = array();
+        $i = 1;
+        foreach ($datos as $dato) 
         {
-            if (is_null($anio))
-            {
-                $anio = 2018;
-            }
-            $parametros = self::get_parametros();
-            $host = $parametros['host'];
-            $server = $parametros['server'];
-            $usr = $parametros['usuario'];
-            $clave = $parametros['clave'];
-            if ($anio < 2018)
-            {
-                $database = 'ingr_guarani_'.$anio;
-            }
-            else
-            {
-                $database = 'ingr_guarani';
-            }
-            $strConexion = "informix:host=$host;service=1600;database=$database;server=$server;protocol=olsoctcp;EnableScrollableCursors=1";
-            $conexion = new PDO($strConexion, "$usr", "$clave");
-            return $conexion;
+            $dato['id'] = $i;
+            $i++;
+            $resultado[] = $dato;
         }
-        catch(PDOException $e)
-        {
-            echo $e->getMessage();
-            die();
-        }
+        return $resultado;
     }
+
+
+    /** Retorna el listado carreras que tienen plan activo vigente **/
+    static function get_carreras() 
+    {
+        $db = MisConsultas::getConexion ();
+        $sqlText = "SELECT carrera, nombre || ' (' || carrera || ')' AS nombre 
+                        FROM sga_carreras 
+                        WHERE estado = 'A'
+                        ORDER BY nombre";
+
+        $carreras = $db->query($sqlText)->fetchAll(PDO::FETCH_ASSOC);
+        return $carreras;
+    }	
+
+    static function query($sqlText) 
+    {
+        $db = MisConsultas::getConexion ();
+        $datos = $db->query($sqlText)->fetchAll(PDO::FETCH_ASSOC);
+        return MisConsultas::addFakeId($datos);
+    }
+
+
+    ////////////////////////////////////////////////////////////
+    ////////////////////////////////////////////////////////////
 
     function getServer()
     {
         if (DESARROLLO) 
         {
-            return 'ol_guarani2';
+            return 'ol_guarani';
         }
         else 
         {
@@ -133,32 +83,7 @@ class MisConsultas {
         }
     }
     
-    static function query($sqlText) 
-    {
-        $db = MisConsultas::getConexion ();
-        //echo($sqlText.PHP_EOL);
-        $datos = $db->query($sqlText)->fetchAll(PDO::FETCH_ASSOC);
-
-        $datos = MisConsultas::addFakeId($datos);
-
-        return $datos;			
-    }
 	
-    static function queryPosgrado($sqlText) 
-    {
-        $db = MisConsultas::getConexionPostgrado();
-								 
-																  
-
-		$resultado = $db->query($sqlText);
-		
-        $datos = $resultado->fetchAll(PDO::FETCH_ASSOC);
-
-        $datos = MisConsultas::addFakeId($datos);
-
-        return $datos;			
-    }	
-		
     
     static function getPais() 
     {
@@ -601,98 +526,9 @@ class MisConsultas {
         return $result;
      }
     
-    static function addFakeId($datos) 
-    {
-        $resultado = array();
-        $i = 1;
-        foreach ($datos as $dato) 
-        {
-            $dato['id'] = $i;
-            $i++;
-            $resultado[] = $dato;
-        }
-        return $resultado;
-    }
-
-    static function getInfoAlumnoCarrera($db, $alumno, $anio_academico) 
-    {
-        $sqlText = "SELECT C.nombre_reducido AS carrera, YEAR(A.fecha_ingreso)
-                        FROM sga_alumnos A, sga_carreras C
-                        WHERE A.legajo = '$alumno'
-                            AND YEAR(A.fecha_ingreso) = '$anio_academico'
-                            AND A.carrera = C.carrera";
-
-        $carreras = $db->query($sqlText);
-        if ($carreras != False) 
-        {
-            $carreras = $carreras->fetchAll(PDO::FETCH_ASSOC);
-            return $carreras;
-        }
-        else
-        {	
-            echo "Se produjo un error en la linea ".__line__." del archivo ".__file__;
-        }
-    }
+    
 		
-    static function getDatosNuervosInscriptos($filtro=array()) 
-    {
-        if (!array_key_exists('ANIO_ACADEMICO', $filtro)) 
-        {
-            return;
-        } 
 
-        $anio_academico = $filtro['ANIO_ACADEMICO'];
-
-        $db = MisConsultas::getConexion ();
-
-        $sqlText = "SELECT DISTINCT S.nombre AS sede, 
-                                    legajo, 
-                                    (apellido || ', ' || nombres) AS nombres, 
-                                    dni, 
-                                    fecha_nacim,
-                                    e_mail, 
-                                    ciudad_proced, 
-                                    prov_proced, 
-                                    colegio_secundario, 
-                                    ciudad_colegio, 
-                                    prov_colegio
-                        FROM rep_nuevos_inscriptos R
-                        JOIN sga_sedes S ON (S.sede = R.sede)";
-
-        if ($anio_academico != null) 
-        {
-            $sqlText .= "WHERE anio_ingreso = '$anio_academico' ";
-        }
-
-        $sqlText .= "ORDER BY nombres";
-
-        $datos = $db->query($sqlText)->fetchAll(PDO::FETCH_ASSOC);
-
-        $datos = MisConsultas::addFakeId($datos);
-        $alumnos = MisConsultas::agregaCarreras($datos, $anio_academico);
-
-        return $alumnos;
-    }	
-
-    static function agregaCarreras($datos, $anio_academico) 
-    {
-        $resultado = array();
-        $db = 	MisConsultas::getConexion ();	
-
-        foreach ($datos as $dato) 
-        {
-            $legajo = $dato['LEGAJO'];
-            $carreras = MisConsultas::getInfoAlumnoCarrera($db, $legajo, $anio_academico);
-            $i = 1;
-            foreach ($carreras as $carrera) 
-            {
-                $dato["CARRERA".$i] = $carrera['CARRERA'];
-                $i++;
-            }
-            $resultado[] = $dato;
-        }
-        return $resultado;
-    }		
 
     static function getCarreras () 
     {
@@ -773,20 +609,6 @@ class MisConsultas {
         return $datos;
     }
 		
-    /** Retorna el listado carreras que tienen plan activo vigente **/
-    static function get_carreras() 
-    {
-        $db = MisConsultas::getConexion ();
-
-        $sqlText = "SELECT carrera, nombre || ' (' || carrera || ')' AS nombre 
-                        FROM sga_carreras 
-                        WHERE estado = 'A'
-                                AND carrera <> 290
-                        ORDER BY nombre;";
-
-        $carreras = $db->query($sqlText)->fetchAll(PDO::FETCH_ASSOC);
-        return $carreras;
-    }	
                 
     /** Retorna el listado de materias de una determinada carrera pertenecientes al plan activo vigente **/
     static function get_materias($carrera) 

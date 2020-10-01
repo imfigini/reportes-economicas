@@ -173,7 +173,7 @@ INSERT INTO apex_objeto_ei_formulario_ef (objeto_ei_formulario_fila, objeto_ei_f
 	'carrera', --columnas
 	'0', --obligatorio
 	'0', --oculto_relaja_obligatorio
-	'1', --orden
+	'2', --orden
 	'Carrera', --etiqueta
 	NULL, --etiqueta_estilo
 	NULL, --descripcion
@@ -253,7 +253,7 @@ INSERT INTO apex_objeto_ei_formulario_ef (objeto_ei_formulario_fila, objeto_ei_f
 	'ingreso', --columnas
 	'1', --obligatorio
 	'0', --oculto_relaja_obligatorio
-	'2', --orden
+	'1', --orden
 	'Año de ingreso', --etiqueta
 	NULL, --etiqueta_estilo
 	NULL, --descripcion

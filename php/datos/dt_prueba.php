@@ -10,12 +10,12 @@ class dt_prueba extends toba_datos_tabla
 		return $resultado;
 	}
 
-	function get_listado_nuevos_inscriptos($filtro=array())
-	{
-		$resultado = MisConsultas::getDatosNuervosInscriptos($filtro);
+	// function get_listado_nuevos_inscriptos($filtro=array())
+	// {
+	// 	$resultado = MisConsultas::getDatosNuervosInscriptos($filtro);
 		
-		return $resultado;
-	}
+	// 	return $resultado;
+	// }
 	
 	function get_listado_mails($filtro=array())
 	{
@@ -110,49 +110,49 @@ class dt_prueba extends toba_datos_tabla
 
 
 
-	function get_ingresantes($filtro=array())
-	{
-		$where = array();
+	// function get_ingresantes($filtro=array())
+	// {
+	// 	$where = array();
 		
-		if (isset($filtro['carrera'])) {
-			$where[] = "sga_alumnos.carrera LIKE ".quote("%{$filtro['carrera']}%");
-		}
+	// 	if (isset($filtro['carrera'])) {
+	// 		$where[] = "sga_alumnos.carrera LIKE ".quote("%{$filtro['carrera']}%");
+	// 	}
 		
-		if (isset($filtro['ingreso'])) {
-			$where[] = "sga_periodo_insc.anio_academico = ".$filtro['ingreso'];
-		}
+	// 	if (isset($filtro['ingreso'])) {
+	// 		$where[] = "sga_periodo_insc.anio_academico = ".$filtro['ingreso'];
+	// 	}
 
-		$sql = 
-			'SELECT 
-				sga_sedes.nombre AS sede,
-                                sga_carreras.nombre AS carrera, 
-                                sga_personas.apellido || ", " || sga_personas.nombres AS nombre, 
-				sga_personas.nro_documento, 
-                                sga_periodo_insc.anio_academico AS ingreso
-			FROM 
-				sga_personas, sga_alumnos, sga_carrera_aspira, sga_periodo_insc, sga_carreras, sga_sedes
-			WHERE 
-                                sga_personas.nro_inscripcion = sga_alumnos.nro_inscripcion AND
-				sga_alumnos.nro_inscripcion = sga_carrera_aspira.nro_inscripcion AND
-				sga_alumnos.carrera = sga_carrera_aspira.carrera AND 
-				sga_carrera_aspira.periodo_inscripcio = sga_periodo_insc.periodo_inscripcio AND
-				sga_carrera_aspira.carrera = sga_carreras.carrera AND
-                                sga_sedes.sede = sga_alumnos.sede AND
-				sga_alumnos.fecha_ingreso <= ALL (SELECT fecha_ingreso 
-                                                                            FROM sga_alumnos A2 
-                                                                            WHERE sga_alumnos.legajo = A2.legajo)';
+	// 	$sql = 
+	// 		'SELECT 
+	// 			sga_sedes.nombre AS sede,
+    //                             sga_carreras.nombre AS carrera, 
+    //                             sga_personas.apellido || ", " || sga_personas.nombres AS nombre, 
+	// 			sga_personas.nro_documento, 
+    //                             sga_periodo_insc.anio_academico AS ingreso
+	// 		FROM 
+	// 			sga_personas, sga_alumnos, sga_carrera_aspira, sga_periodo_insc, sga_carreras, sga_sedes
+	// 		WHERE 
+    //                             sga_personas.nro_inscripcion = sga_alumnos.nro_inscripcion AND
+	// 			sga_alumnos.nro_inscripcion = sga_carrera_aspira.nro_inscripcion AND
+	// 			sga_alumnos.carrera = sga_carrera_aspira.carrera AND 
+	// 			sga_carrera_aspira.periodo_inscripcio = sga_periodo_insc.periodo_inscripcio AND
+	// 			sga_carrera_aspira.carrera = sga_carreras.carrera AND
+    //                             sga_sedes.sede = sga_alumnos.sede AND
+	// 			sga_alumnos.fecha_ingreso <= ALL (SELECT fecha_ingreso 
+    //                                                                         FROM sga_alumnos A2 
+    //                                                                         WHERE sga_alumnos.legajo = A2.legajo)';
 				
-		if (count($where)>0) {
-			$sql = sql_concatenar_where($sql, $where);
-		}
+	// 	if (count($where)>0) {
+	// 		$sql = sql_concatenar_where($sql, $where);
+	// 	}
                 
-                $sql .= " ORDER BY 5,2,3 ";
+    //             $sql .= " ORDER BY 5,2,3 ";
 
-		$resultado = MisConsultas::query($sql);
+	// 	$resultado = MisConsultas::query($sql);
 		
-		return $resultado;
+	// 	return $resultado;
 		
-	}	
+	// }	
 
 	function get_carreras() {
 		$sql = "SELECT carrera, nombre FROM sga_carreras";

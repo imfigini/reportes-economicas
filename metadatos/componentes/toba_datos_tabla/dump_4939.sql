@@ -25,7 +25,7 @@ INSERT INTO apex_objeto (proyecto, objeto, anterior, identificador, reflexivo, c
 	NULL, --colapsable
 	NULL, --descripcion
 	'Reportes', --fuente_datos_proyecto
-	'toba_2_6', --fuente_datos
+	'toba_2_7', --fuente_datos
 	NULL, --solicitud_registrar
 	NULL, --solicitud_obj_obs_tipo
 	NULL, --solicitud_obj_observacion
@@ -58,7 +58,7 @@ INSERT INTO apex_objeto_db_registros (objeto_proyecto, objeto, max_registros, mi
 	NULL, --alias
 	'0', --modificar_claves
 	'Reportes', --fuente_datos_proyecto
-	'toba_2_6', --fuente_datos
+	'toba_2_7', --fuente_datos
 	'1', --permite_actualizacion_automatica
 	'desarrollo', --esquema
 	'desarrollo'  --esquema_ext

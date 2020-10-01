@@ -1,6 +1,6 @@
 <?php
 
-require_once ('/home/fcex/admin/toba_2.6.3/php/3ros/phpmailer/class.phpmailer.php');
+require_once ('/home/soporte/toba_2.7.13/php/3ros/phpmailer/class.phpmailer.php');
 //require_once (toba_dir() . "/proyectos/Encuestas/php/abm_de_relevamientos/defines.php");
 //require_once (CONSULTAS_PATH."consultas_toba.php");
 

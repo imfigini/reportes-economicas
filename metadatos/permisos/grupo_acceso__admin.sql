@@ -56,12 +56,6 @@ INSERT INTO apex_usuario_grupo_acc_item (proyecto, usuario_grupo_acc, item_id, i
 	'Reportes', --proyecto
 	'admin', --usuario_grupo_acc
 	NULL, --item_id
-	'3719'  --item
-);
-INSERT INTO apex_usuario_grupo_acc_item (proyecto, usuario_grupo_acc, item_id, item) VALUES (
-	'Reportes', --proyecto
-	'admin', --usuario_grupo_acc
-	NULL, --item_id
 	'3720'  --item
 );
 INSERT INTO apex_usuario_grupo_acc_item (proyecto, usuario_grupo_acc, item_id, item) VALUES (
@@ -110,12 +104,6 @@ INSERT INTO apex_usuario_grupo_acc_item (proyecto, usuario_grupo_acc, item_id, i
 	'Reportes', --proyecto
 	'admin', --usuario_grupo_acc
 	NULL, --item_id
-	'3766'  --item
-);
-INSERT INTO apex_usuario_grupo_acc_item (proyecto, usuario_grupo_acc, item_id, item) VALUES (
-	'Reportes', --proyecto
-	'admin', --usuario_grupo_acc
-	NULL, --item_id
 	'3773'  --item
 );
 INSERT INTO apex_usuario_grupo_acc_item (proyecto, usuario_grupo_acc, item_id, item) VALUES (
@@ -134,19 +122,7 @@ INSERT INTO apex_usuario_grupo_acc_item (proyecto, usuario_grupo_acc, item_id, i
 	'Reportes', --proyecto
 	'admin', --usuario_grupo_acc
 	NULL, --item_id
-	'3853'  --item
-);
-INSERT INTO apex_usuario_grupo_acc_item (proyecto, usuario_grupo_acc, item_id, item) VALUES (
-	'Reportes', --proyecto
-	'admin', --usuario_grupo_acc
-	NULL, --item_id
 	'3856'  --item
-);
-INSERT INTO apex_usuario_grupo_acc_item (proyecto, usuario_grupo_acc, item_id, item) VALUES (
-	'Reportes', --proyecto
-	'admin', --usuario_grupo_acc
-	NULL, --item_id
-	'3861'  --item
 );
 INSERT INTO apex_usuario_grupo_acc_item (proyecto, usuario_grupo_acc, item_id, item) VALUES (
 	'Reportes', --proyecto
@@ -248,12 +224,6 @@ INSERT INTO apex_usuario_grupo_acc_item (proyecto, usuario_grupo_acc, item_id, i
 	'Reportes', --proyecto
 	'admin', --usuario_grupo_acc
 	NULL, --item_id
-	'3951'  --item
-);
-INSERT INTO apex_usuario_grupo_acc_item (proyecto, usuario_grupo_acc, item_id, item) VALUES (
-	'Reportes', --proyecto
-	'admin', --usuario_grupo_acc
-	NULL, --item_id
 	'3968'  --item
 );
 INSERT INTO apex_usuario_grupo_acc_item (proyecto, usuario_grupo_acc, item_id, item) VALUES (
@@ -327,12 +297,6 @@ INSERT INTO apex_usuario_grupo_acc_item (proyecto, usuario_grupo_acc, item_id, i
 	'admin', --usuario_grupo_acc
 	NULL, --item_id
 	'4020'  --item
-);
-INSERT INTO apex_usuario_grupo_acc_item (proyecto, usuario_grupo_acc, item_id, item) VALUES (
-	'Reportes', --proyecto
-	'admin', --usuario_grupo_acc
-	NULL, --item_id
-	'4022'  --item
 );
 INSERT INTO apex_usuario_grupo_acc_item (proyecto, usuario_grupo_acc, item_id, item) VALUES (
 	'Reportes', --proyecto
@@ -518,31 +482,7 @@ INSERT INTO apex_usuario_grupo_acc_item (proyecto, usuario_grupo_acc, item_id, i
 	'Reportes', --proyecto
 	'admin', --usuario_grupo_acc
 	NULL, --item_id
-	'4088'  --item
-);
-INSERT INTO apex_usuario_grupo_acc_item (proyecto, usuario_grupo_acc, item_id, item) VALUES (
-	'Reportes', --proyecto
-	'admin', --usuario_grupo_acc
-	NULL, --item_id
 	'4090'  --item
-);
-INSERT INTO apex_usuario_grupo_acc_item (proyecto, usuario_grupo_acc, item_id, item) VALUES (
-	'Reportes', --proyecto
-	'admin', --usuario_grupo_acc
-	NULL, --item_id
-	'4095'  --item
-);
-INSERT INTO apex_usuario_grupo_acc_item (proyecto, usuario_grupo_acc, item_id, item) VALUES (
-	'Reportes', --proyecto
-	'admin', --usuario_grupo_acc
-	NULL, --item_id
-	'4100'  --item
-);
-INSERT INTO apex_usuario_grupo_acc_item (proyecto, usuario_grupo_acc, item_id, item) VALUES (
-	'Reportes', --proyecto
-	'admin', --usuario_grupo_acc
-	NULL, --item_id
-	'4103'  --item
 );
 INSERT INTO apex_usuario_grupo_acc_item (proyecto, usuario_grupo_acc, item_id, item) VALUES (
 	'Reportes', --proyecto
@@ -572,12 +512,6 @@ INSERT INTO apex_usuario_grupo_acc_item (proyecto, usuario_grupo_acc, item_id, i
 	'Reportes', --proyecto
 	'admin', --usuario_grupo_acc
 	NULL, --item_id
-	'4109'  --item
-);
-INSERT INTO apex_usuario_grupo_acc_item (proyecto, usuario_grupo_acc, item_id, item) VALUES (
-	'Reportes', --proyecto
-	'admin', --usuario_grupo_acc
-	NULL, --item_id
 	'4111'  --item
 );
 INSERT INTO apex_usuario_grupo_acc_item (proyecto, usuario_grupo_acc, item_id, item) VALUES (
@@ -591,12 +525,6 @@ INSERT INTO apex_usuario_grupo_acc_item (proyecto, usuario_grupo_acc, item_id, i
 	'admin', --usuario_grupo_acc
 	NULL, --item_id
 	'4113'  --item
-);
-INSERT INTO apex_usuario_grupo_acc_item (proyecto, usuario_grupo_acc, item_id, item) VALUES (
-	'Reportes', --proyecto
-	'admin', --usuario_grupo_acc
-	NULL, --item_id
-	'4114'  --item
 );
 INSERT INTO apex_usuario_grupo_acc_item (proyecto, usuario_grupo_acc, item_id, item) VALUES (
 	'Reportes', --proyecto

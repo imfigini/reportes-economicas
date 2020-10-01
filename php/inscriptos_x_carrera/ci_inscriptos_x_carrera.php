@@ -63,7 +63,7 @@ class ci_inscriptos_x_carrera extends toba_ci
                     JOIN sga_periodo_insc I ON (I.periodo_inscripcio = S.periodo_inscripcio)
                     JOIN sga_alumnos A ON (A.carrera = S.carrera AND A.nro_inscripcion = S.nro_inscripcion)
                     JOIN sga_carreras C ON (C.carrera = A.carrera) 
-                    WHERE C.carrera <> 290 AND C.estado = 'A' ";
+                    WHERE C.estado = 'A' ";
             if (isset($filtro['CARRERA']))
             {
                 $carrera = $filtro['CARRERA'];

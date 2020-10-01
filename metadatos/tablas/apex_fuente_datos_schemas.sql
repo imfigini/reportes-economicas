@@ -10,7 +10,7 @@ INSERT INTO apex_fuente_datos_schemas (proyecto, fuente_datos, nombre, principal
 );
 INSERT INTO apex_fuente_datos_schemas (proyecto, fuente_datos, nombre, principal) VALUES (
 	'Reportes', --proyecto
-	'toba_2_6', --fuente_datos
+	'toba_2_7', --fuente_datos
 	'desarrollo', --nombre
 	'0'  --principal
 );

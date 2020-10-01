@@ -34,8 +34,7 @@ SELECT DISTINCT A.*
 FROM "dba".sga_alumnos A
 	WHERE A.fecha_ingreso = (SELECT MIN(A2.fecha_ingreso) FROM "dba".sga_alumnos A2
 					WHERE A.unidad_academica = A2.unidad_academica
-					AND A.nro_inscripcion = A2.nro_inscripcion
-					AND A.carrera <> '290')
+					AND A.nro_inscripcion = A2.nro_inscripcion)
 	INTO TEMP auxi WITH NO LOG;
 
 INSERT INTO rep_nuevos_inscriptos
@@ -52,11 +51,11 @@ SELECT A.sede, A.legajo, P.apellido, P.nombres, P.nro_documento, A.carrera, C.no
 		LEFT JOIN mug_localidades LOC_SEC ON (COL.localidad = LOC_SEC.localidad)
 		LEFT JOIN mug_dptos_partidos x_sec ON (LOC_SEC.dpto_partido = x_sec.dpto_partido)
 		LEFT JOIN mug_provincias PROV_SEC ON (PROV_SEC.provincia = x_sec.provincia)
-		JOIN sga_carreras C ON (A.unidad_academica = P.unidad_academica AND A.carrera = C.carrera)
-	AND A.carrera <> '290';
+		JOIN sga_carreras C ON (A.unidad_academica = P.unidad_academica AND A.carrera = C.carrera);
 
 ALTER INDEX idx5 TO cluster;
 
+DROP TABLE auxi;
 INSERT INTO rep_fecha_actualiz_tablas VALUES ('rep_nuevos_inscriptos', CURRENT YEAR TO SECOND);
 
 

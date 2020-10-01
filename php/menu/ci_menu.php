@@ -5,7 +5,7 @@ class ci_menu extends toba_ci
 
     function conf__arbol(toba_ei_arbol $arbol)
     {
-        //-- Se obtienen los nodos que formarán parte del arbol
+        //-- Se obtienen los nodos que formarï¿½n parte del arbol
         require_once('contrib/catalogo_items_menu/toba_catalogo_items_menu.php');
         $catalogo = new toba_catalogo_items_menu();
         $raiz = '1';        
@@ -44,7 +44,7 @@ class ci_menu extends toba_ci
                         AND padre = '1'
                         AND item <> '1'
                         ORDER BY orden";
-            $carpetas = toba::db('toba_2_6')->consultar($sql);
+            $carpetas = toba::db('toba_2_7')->consultar($sql);
             foreach ($carpetas AS $carpeta)
             {
                 ei_arbol($carpeta['nombre'], 'nombre');
@@ -53,7 +53,7 @@ class ci_menu extends toba_ci
                             FROM desarrollo.apex_item
                             WHERE padre = '$item'
                             ORDER BY padre, orden;";
-                $operaciones = toba::db('toba_2_6')->consultar($sql);
+                $operaciones = toba::db('toba_2_7')->consultar($sql);
                 ei_arbol($operaciones, 'operaciones');
             }
             //return Connect::getConexion($parametros[0]);

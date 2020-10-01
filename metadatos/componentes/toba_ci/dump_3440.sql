@@ -261,7 +261,7 @@ INSERT INTO apex_objeto_ci_pantalla (objeto_ci_proyecto, objeto_ci, pantalla, id
 	'pant_seleccion', --identificador
 	'1', --orden
 	'Selección', --etiqueta
-	'Listado de alumnos con su primer fecha de ingreso a la facultad detallando la carrera a la que se inscribieron por primera vez y el DNI. En el caso que se hayan inscripto a más de una carrera por primera vez el mismo día, figura en todas. Se puede filtrar por año de ingreso y por carrera.', --descripcion
+	'Listado de alumnos con su primer fecha de ingreso a la facultad detallando la carrera a la que se inscribieron por primera vez y el DNI. En el caso que se hayan inscripto a más de una carrera por primera vez el mismo día, figura en todas. Se puede filtrar por año de ingreso y por carrera. La consulta puede demorar un poco.', --descripcion
 	NULL, --tip
 	'apex', --imagen_recurso_origen
 	NULL, --imagen
