@@ -30,16 +30,16 @@ class ci_cantidad_rebotes extends toba_ci
 	function get_cantidad_rebotes($carrera)
 	{
 		$sql = "SELECT  V.legajo, 
-                                P.apellido || ', ' || P.nombres AS alumno, 
-                                V.carrera, 
-                                COUNT(*) AS CANT_REBOTES
+						P.apellido || ', ' || P.nombres AS alumno, 
+						V.carrera, 
+						COUNT(*) AS CANT_REBOTES
 					FROM sga_alumnos A
 					JOIN vw_hist_academica V ON (A.unidad_academica = V.unidad_academica AND A.carrera = V.carrera AND A.legajo = V.legajo AND A.regular = 'S' AND A.calidad = 'A')
-                                        JOIN sga_personas P ON (P.unidad_academica = A.unidad_academica AND P.nro_inscripcion = A.nro_inscripcion)
-					WHERE V.resultado = 'R'";
+					JOIN sga_personas P ON (P.unidad_academica = A.unidad_academica AND P.nro_inscripcion = A.nro_inscripcion)
+						WHERE V.resultado = 'R'";
 
 		if (isset($carrera))
-			$sql .= " AND V.carrera = $carrera";
+			$sql .= " AND V.carrera = '$carrera'";
 
 		$sql .= " GROUP BY 1,2,3
 				ORDER BY 3 DESC";

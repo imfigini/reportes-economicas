@@ -14,7 +14,7 @@ class ConsultasCursadas
                                 AND P.estado = 'V'";    //Activo Vigente
         if (isset($carrera))
         {
-            $sqlText .= " AND P.carrera = $carrera";
+            $sqlText .= " AND P.carrera = '$carrera'";
         }
 
         $sqlText .= " ORDER BY nombre";
@@ -23,7 +23,7 @@ class ConsultasCursadas
         return $materias;
     }	
 
-    //Retorna todos los alumnos que cursaron una determinada materia en un determinado año
+    //Retorna todos los alumnos que cursaron una determinada materia en un determinado aï¿½o
     static function get_alumnos_cursada($materia=NULL, $anio_cursada=NULL, $carrera=NULL, $condicion=NULL, $sede=null)
     {
         $sql = "SELECT  A.legajo, 

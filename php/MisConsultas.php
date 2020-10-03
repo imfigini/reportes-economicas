@@ -46,6 +46,12 @@ class MisConsultas {
         return $resultado;
     }
 
+    static function query($sqlText) 
+    {
+        $db = MisConsultas::getConexion ();
+        $datos = $db->query($sqlText)->fetchAll(PDO::FETCH_ASSOC);
+        return MisConsultas::addFakeId($datos);
+    }
 
     /** Retorna el listado carreras que tienen plan activo vigente **/
     static function get_carreras() 
@@ -60,31 +66,115 @@ class MisConsultas {
         return $carreras;
     }	
 
-    static function query($sqlText) 
+    /** Retorna el listado de materias de una determinada carrera pertenecientes al plan activo vigente **/
+    static function get_materias($carrera) 
     {
+        $sqlText = "SELECT DISTINCT M.materia, M.nombre || ' (' || M.materia || ')' AS nombre
+                        FROM sga_materias M, sga_atrib_mat_plan A, sga_planes P
+                        WHERE M.unidad_academica = A.unidad_academica AND M.materia = A.materia
+                                AND A.unidad_academica = P.unidad_academica AND A.carrera = P.carrera AND A.plan = P.plan AND A.version = P.version_actual
+                                AND P.estado = 'V'";    //Activo Vigente
+        if (isset($carrera))
+        {
+            $sqlText .= " AND P.carrera = '$carrera'";
+        }
+
+        $sqlText .= " ORDER BY nombre";
+
         $db = MisConsultas::getConexion ();
-        $datos = $db->query($sqlText)->fetchAll(PDO::FETCH_ASSOC);
-        return MisConsultas::addFakeId($datos);
-    }
+        $materias = $db->query($sqlText)->fetchAll(PDO::FETCH_ASSOC);
+        return $materias;
+    }	
 
-
-    ////////////////////////////////////////////////////////////
-    ////////////////////////////////////////////////////////////
-
-    function getServer()
+    //devuelve el porcentaje de avance de un alumno en una determinada carrera
+    static function add_porcentaje_avance($nro_inscripcion, $carrera)
     {
-        if (DESARROLLO) 
+        $db = MisConsultas::getConexion();
+        $ua = UNIDAD_ACAD;
+        $sql = "EXECUTE PROCEDURE sp_fichaluporcapro('$ua', '$nro_inscripcion')";
+        $porc_avance = $db->query($sql)->fetchAll();
+        //ei_arbol($porc_avance);
+        foreach ($porc_avance AS $porc)
         {
-            return 'ol_guarani';
+            if ($porc[4] == $carrera && $porc[8] != '0' && isset($porc[13])) {
+                return $porc[13];
+            }
         }
-        else 
-        {
-            return 'ol_guarani';
-        }
+        return 0;                    
     }
-    
-	
-    
+
+    static function getCursadas($parametros)
+    {
+        $nro_inscripcion = $parametros['NRO_INSCRIPCION'];
+
+        $db = MisConsultas::getConexion();
+        
+        $sql = "SELECT sga_cursadas.materia,"
+                . "sga_cursadas.fecha_regularidad,"
+                . "sga_cursadas.resultado,"
+                . "sga_cursadas.nota,"
+                . "sga_cursadas.fin_vigencia_regul,"
+                . "sga_cursadas.carrera,"
+                . "sga_materias.nombre AS nombre_materia,"
+                . "sga_carreras.nombre AS nombre_carrera"
+                . " FROM sga_cursadas, sga_carreras, sga_materias, sga_alumnos"
+                . " WHERE "
+                . " sga_alumnos.nro_inscripcion = '$nro_inscripcion' "
+                . " AND sga_alumnos.carrera = sga_cursadas.carrera"
+                . " AND sga_alumnos.legajo = sga_cursadas.legajo"
+                . " AND sga_cursadas.carrera = sga_carreras.carrera"
+                . " AND sga_cursadas.materia = sga_materias.materia";
+
+        if (isset($parametros['CARRERA']))
+        {
+            $carrera = $parametros['CARRERA'];
+            $sql .= " AND sga_alumnos.carrera = '$carrera' ";
+        }
+        ei_arbol($sql);
+        $cursadas = $db->query($sql)->fetchAll();
+        $cursadas = self::addFakeId($cursadas);
+
+        return $cursadas;
+    }   
+
+    static function getInscripcionCursadas($parametros)
+    {
+        $nro_inscripcion = $parametros['NRO_INSCRIPCION'];
+
+        $db = MisConsultas::getConexion();
+        
+        $sql = "SELECT 	I.carrera, 
+                        CAR.nombre AS carrera_nombre,
+                        I.comision,
+                        M.materia,
+                        M.nombre AS materia_nombre,
+                        DECODE(I.calidad_insc, 'R', 'Regular', 'P', 'Promocional') AS calidad_insc,
+                        DECODE (I.estado, 'A', 'Aceptada', 'E', 'Aceptada c/excep', 'P', 'Pendiente', 'R', 'Rechazada') as estado
+                    FROM sga_insc_cursadas I
+                    JOIN sga_comisiones C ON (C.comision = I.comision)
+                    JOIN sga_periodos_lect P ON (P.anio_academico = C.anio_academico AND P.periodo_lectivo = C.periodo_lectivo)
+                    JOIN sga_materias M ON (M.materia = C.materia)
+                    JOIN sga_carreras CAR ON (I.carrera = CAR.carrera)
+                    WHERE I.legajo = '$nro_inscripcion'
+                    AND I.comision = C.comision 
+                    AND TODAY BETWEEN P.fecha_inicio AND P.fecha_fin ";
+
+        if (isset($parametros['CARRERA']))
+        {
+            $carrera = $parametros['CARRERA'];
+            $sql .= " AND I.carrera = '$carrera' ";
+        }
+        ei_arbol($sql);
+        $insc_cursadas = $db->query($sql)->fetchAll();
+        $insc_cursadas = self::addFakeId($insc_cursadas);
+
+        return $insc_cursadas;
+    }   
+
+    ////////////////////////////////////////////////////////////
+    ////////////////////////////////////////////////////////////
+
+
     static function getPais() 
     {
         $db = MisConsultas::getConexion ();
@@ -369,37 +459,6 @@ class MisConsultas {
         return $materias;
     }
 
-    static function get_anios_miniGuarani() 
-    {
-        $db = self::getConexionMini(2018);
-        $sql = 'SELECT anio_academico FROM sga_anio_academico ORDER BY 1 DESC';
-        return $db->query($sql);
-    }
-    
-    static function getAniosAcademicos_miniGuarani () 
-    {
-        $db = MisConsultas::getConexion ();
-
-        $sqlText = "SELECT anio_academico
-                        FROM sga_anio_academico
-                                WHERE anio_academico >= 2014
-                        ORDER BY 1 DESC";
-
-        $anios = $db->query($sqlText)->fetchAll(PDO::FETCH_ASSOC);
-
-        //Los a�os acad�micos de mini guarani son uno m�s que en producci�n despu�s de agosto. Lo agrego al ppio.
-        $hoy = new DateTime("now");
-        $y = $hoy->format('Y');
-        $fecha = new DateTime("$y-08-01");
-
-        if ($hoy > $fecha)
-        {
-            array_unshift($anios, Array('ANIO_ACADEMICO' => $y + 1));
-        }
-        
-        return $anios;
-    }	
-
     static function getPeriodosLectivos ($anio_academico) 
     {
         $db = MisConsultas::getConexion ();
@@ -549,32 +608,7 @@ class MisConsultas {
         return $carreras;        
     }
 
-    static function getMaterias ($carrera) 
-    {
-        $db = MisConsultas::getConexion();
-
-        $sqlText = "SELECT DISTINCT A.materia, A.nombre_materia || ' (' || A.materia || ')' AS nombre_materia
-                        FROM sga_atrib_mat_plan A
-                        JOIN sga_planes P ON (A.unidad_academica = P.unidad_academica AND A.carrera = P.carrera AND A.plan = P.plan AND A.version = P.version_actual)
-                        WHERE A.carrera = $carrera
-                        ORDER BY 2";
-
-        $materias = $db->query($sqlText);
-        return $materias;
-    }	
-                
-    static function getCarrerasPosgrado () 
-    {
-        $db = MisConsultas::getConexionPostgrado ();
-
-        $sqlText = "SELECT nombre, carrera 
-                        FROM sga_carreras
-                        ORDER BY 1 DESC";
-
-        $anios = $db->query($sqlText);
-        return $anios;
-    }	
-		
+    
     static function getDatosMails($filtro=array()) 
     {
         if (!array_key_exists('CARRERA', $filtro)) 
@@ -610,29 +644,9 @@ class MisConsultas {
     }
 		
                 
-    /** Retorna el listado de materias de una determinada carrera pertenecientes al plan activo vigente **/
-    static function get_materias($carrera) 
-    {
-        $sqlText = "SELECT DISTINCT M.materia, M.nombre || ' (' || M.materia || ')' AS nombre
-                        FROM sga_materias M, sga_atrib_mat_plan A, sga_planes P
-                        WHERE M.unidad_academica = A.unidad_academica AND M.materia = A.materia
-                                AND A.unidad_academica = P.unidad_academica AND A.carrera = P.carrera AND A.plan = P.plan AND A.version = P.version_actual
-                                AND P.estado = 'V'";    //Activo Vigente
-        if (isset($carrera))
-        {
-            $sqlText .= " AND P.carrera = $carrera";
-        }
-
-        $sqlText .= " ORDER BY nombre";
-
-        $db = MisConsultas::getConexion ();
-        $materias = $db->query($sqlText)->fetchAll(PDO::FETCH_ASSOC);
-        return $materias;
-
-    }	
-
+    
     /** Retorna el listado de alumnos que tienen aprobada una determinada materia de una determinada carrera**/
-    /** Verifica que el alumno no est� agresado en alguna carrera **/
+    /** Verifica que el alumno no esté agresado en alguna carrera **/
     static function get_alumnos_aprobados($carrera, $materia)
     {
         $db = MisConsultas::getConexion ();
@@ -643,7 +657,7 @@ class MisConsultas {
                         JOIN sga_personas P ON (A.unidad_academica = P.unidad_academica AND A.nro_inscripcion = P.nro_inscripcion)
                         WHERE V.resultado IN ('A', 'P')
                                 AND V.materia = '$materia'
-                                AND V.carrera = $carrera
+                                AND V.carrera = '$carrera'
                                 AND A.calidad = 'A' AND A.regular = 'S'
                                 AND A.legajo NOT IN (SELECT legajo FROM sga_alumnos WHERE calidad = 'E')
                         ORDER BY alumno";
@@ -676,7 +690,7 @@ class MisConsultas {
         }
     }
 
-    // Recupera las materias de un plan/carrera/version para un determinado a�o de cursada
+    // Recupera las materias de un plan/carrera/version para un determinado año de cursada
     static function getMateriasAnio($db, $carrera, $plan, $version, $anio_de_cursada)
     {
         $sql = "SELECT materia 
@@ -694,7 +708,8 @@ class MisConsultas {
     // Recupera el plan y version de un alumno
     static function getPlanVersionAlumno($db, $carrera, $legajo, $fecha_ingreso)
     {
-        $sql = "EXECUTE PROCEDURE sp_plan_de_alumno('EXA', '$carrera', '$legajo', '$fecha_ingreso 00:00:00')";
+        $ua = UNIDAD_ACAD;
+        $sql = "EXECUTE PROCEDURE sp_plan_de_alumno('$ua', '$carrera', '$legajo', '$fecha_ingreso 00:00:00')";
         $plan_version = $db->query($sql)->fetchAll();
         $plan_version = array('PLAN' => $plan_version[0][0], 'VERSION' => $plan_version[0][1]);
 
@@ -828,9 +843,9 @@ class MisConsultas {
     {
             switch ($valor)
             {
-                    case 1: {return 'Trabaj� al menos 1 h la �ltima semama';}; break;
-                    case 2: {return 'No trabaj� y busc�';}; break;
-                    case 3: {return 'No trabaj� y no busc�';}; break;
+                    case 1: {return 'Trabajó al menos 1 h la última semama';}; break;
+                    case 2: {return 'No trabajó y buscó';}; break;
+                    case 3: {return 'No trabajó y no buscó';}; break;
                     case 4: {return 'Desconoce';}; break;
             }
             return "";
@@ -971,7 +986,7 @@ class MisConsultas {
             return $resultado;
     }
 		
-    // Devuelve los ingresantes de un a�o/carrera
+    // Devuelve los ingresantes de un año/carrera
     static public function getAlumnosAnioAcademico($filtro)
     {
         $sql = "SELECT sga_personas.nro_inscripcion, 
@@ -1012,115 +1027,7 @@ class MisConsultas {
         return $alumnos;
     }
 		
-    /**
-    * Retorna un listado de los alumnos que desprobaron el curso de ingreso un determinado a�o.
-    */
-    static function get_curso_ingreso_desaprobados($anio)
-    {
-            $db = MisConsultas::getConexionMini($anio);
-            $sql = "SELECT A.carrera, P.apellido || ', ' || P.nombres AS alumno, D.desc_abreviada AS tipo_documento, P.nro_documento
-                                    FROM sga_alumnos A
-                                            JOIN sga_personas P ON (A.unidad_academica = P.unidad_academica AND A.nro_inscripcion = P.nro_inscripcion)
-                                            JOIN sga_carrera_aspira S ON (A.unidad_academica = S.unidad_academica AND A.nro_inscripcion = S.nro_inscripcion AND A.carrera = S.carrera)
-                                            LEFT JOIN mdp_tipo_documento D ON (P.tipo_documento = D.tipo_documento)
-                                    WHERE S.periodo_inscripcio = '$anio'
-                                        AND A.carrera NOT IN ('211', '290')
-                                        AND A.legajo NOT IN 
-                                            (SELECT legajo FROM vw_hist_academica V 
-                                                WHERE A.unidad_academica = V.unidad_academica 
-                                                    AND A.carrera = V.carrera 
-                                                    AND V.resultado = 'A')
-                                        AND A.legajo IN 
-                                            (SELECT legajo FROM vw_hist_academica V 
-                                                WHERE A.unidad_academica = V.unidad_academica 
-                                                    AND A.carrera = V.carrera 
-                                                    AND V.resultado = 'R')
-                            ORDER BY 2";
-
-            $desaprobados = $db->query($sql)->fetchAll(PDO::FETCH_ASSOC);
-            return $desaprobados;
-    }
-
-		
-    /**
-    * -- Listado de alumnos cuyo �ltimo a�o de reinscripci�n es el pasado por par�metro
-    */
-    function get_reinscriptos_sin_actividad($filtro)
-    {
-            $anio_reinscripcion = $filtro['anio_academico'];
-
-            $sql = "SELECT          P.apellido || ', ' || P.nombres AS alumno, 
-                                    P.nro_documento, 
-                                    YEAR(A.fecha_ingreso) AS fecha_ingreso,
-                                    A.carrera,
-                                    A.legajo, 
-                                    V.te_per_lect AS telefono, 
-                                    V.e_mail
-                                    FROM    sga_alumnos A
-                                            JOIN sga_reinscripcion R ON (A.unidad_academica = R.unidad_academica AND A.carrera = R.carrera AND A.legajo = R.legajo)
-                                            JOIN sga_personas P ON (A.unidad_academica = P.unidad_academica AND A.nro_inscripcion = P.nro_inscripcion)
-                                            LEFT JOIN vw_datos_censales_actuales V ON (V.unidad_academica = P.unidad_academica AND V.nro_inscripcion = P.nro_inscripcion)
-                                    WHERE  A.calidad = 'A'
-                                    GROUP BY 1,2,3,4,5,6,7
-                                    HAVING MAX (R.anio_academico) = $anio_reinscripcion
-                    ORDER BY alumno";
-
-            $db = MisConsultas::getConexion();
-            $reinscriptos = $db->query($sql)->fetchAll(PDO::FETCH_ASSOC);
-
-            $resultado = array();
-            foreach ($reinscriptos as $alumno)
-            {
-                    $legajo = $alumno['LEGAJO'];
-                    $carrera = $alumno['CARRERA'];
-                    $alumno = self::agregaAnioUltimaActividad($db, $alumno, $legajo, $carrera);
-                    $alumno = self::agregaPorcentajeAvance($db, $alumno, $legajo, $carrera);
-                    $resultado[] = $alumno;
-            }
-
-            $resultado = self::addFakeId($resultado);
-            return $resultado;
-    }		
-
-    static public function agregaPorcentajeAvance($db, $alumno, $legajo, $carrera)
-    {
-        $sql = "EXECUTE PROCEDURE sp_porc_exa('EXA', $carrera, $legajo)";
-        $datos = $db->query($sql)->fetchAll(PDO::FETCH_NUM);
-        $alumno['PORCENTAJE_AVANCE'] = $datos[0][0];
-        return $alumno;
-    }		
-
-    static public function agregaAnioUltimaActividad($db, $alumno, $legajo, $carrera)
-    {
-        $sql = "SELECT MAX(fecha) AS ultima_actividad
-                    FROM vw_hist_academica
-                    WHERE 
-                            vw_hist_academica.legajo = '$legajo' AND
-                            vw_hist_academica.carrera = '$carrera'
-                UNION 
-                    SELECT MAX(fecha_regularidad) AS fecha
-                    FROM sga_cursadas
-                    WHERE 
-                            sga_cursadas.legajo = '$legajo' AND
-                            sga_cursadas.carrera = '$carrera'";
-
-        $datos = $db->query($sql)->fetchAll(PDO::FETCH_NUM);
-
-        if (count($datos) > 0)
-        {
-            if (count($datos) == 1)
-            {
-                $ultima = $datos[0][0];
-            } else
-            {
-                $ultima = ($datos[0][0] > $datos[1][0]) ? $datos[0][0] : $datos[1][0];
-            }
-
-            $alumno["ULTIMA_ACTIVIDAD"] = $ultima;
-        }
-        return $alumno;
-    }		
-
+   
     static public function agregaTelefonoEmail($db, $alumno, $legajo)
     {
             $sql = "SELECT te_per_lect AS telefono, e_mail
@@ -1138,7 +1045,7 @@ class MisConsultas {
     }		
 
     /**
-		* -- Alumnos que NO se reinscribieron mas a partir de un a�o, CON O SIN ACTIVIDAD
+		* -- Alumnos que NO se reinscribieron mas a partir de un año, CON O SIN ACTIVIDAD
 		*/
 		static function get_alumnos_sin_reinscripcion($filtro)
 		{
@@ -1163,7 +1070,6 @@ class MisConsultas {
 						AND A.unidad_academica = P.unidad_academica AND A.nro_inscripcion = P.nro_inscripcion
 						AND A.unidad_academica = R.unidad_academica AND A.carrera = R.carrera AND A.legajo = R.legajo
 						AND A.calidad <> 'E'
-						AND A.carrera <> 290						
 						AND TRIM(A.legajo)||TRIM(A.carrera) NOT IN (
 						SELECT TRIM(R2.legajo)||TRIM(R2.carrera)
 							FROM sga_reinscripcion R2
@@ -1183,7 +1089,7 @@ class MisConsultas {
 			if (isset($filtro['carrera']))
 			{
 				$carrera = $filtro['carrera'];
-				$sql .= " AND A.carrera = $carrera";
+				$sql .= " AND A.carrera = '$carrera'";
 			}
 					
 			$sql .= " ORDER BY R.anio_academico";
@@ -1203,7 +1109,34 @@ class MisConsultas {
 			$resultado = self::addFakeId($resultado);
 			
 			return $resultado;
-		}		
+        }		
+        
+        static public function agregaAnioUltimaActividad($db, $alumno, $legajo, $carrera)
+        {
+            $sql = "SELECT MAX(fecha) AS ultima_actividad
+                        FROM vw_hist_academica
+                        WHERE   vw_hist_academica.legajo = '$legajo' AND
+                                vw_hist_academica.carrera = '$carrera'
+                    UNION 
+                        SELECT MAX(fecha_regularidad) AS fecha
+                        FROM sga_cursadas
+                        WHERE   sga_cursadas.legajo = '$legajo' AND
+                                sga_cursadas.carrera = '$carrera'";
+    
+            $datos = $db->query($sql)->fetchAll(PDO::FETCH_NUM);
+    
+            if (count($datos) > 0)
+            {
+                if (count($datos) == 1)  {
+                    $ultima = $datos[0][0];
+                } else  {
+                    $ultima = ($datos[0][0] > $datos[1][0]) ? $datos[0][0] : $datos[1][0];
+                }
+                    $alumno["ULTIMA_ACTIVIDAD"] = $ultima;
+            }
+            return $alumno;
+        }		
+    
 	
 		static function getAlumnosAddFiltroBusqueda($filtro)
 		{
@@ -1240,10 +1173,10 @@ class MisConsultas {
 			$sql = "SELECT 	DISTINCT
 						sga_personas.apellido || ', ' || sga_personas.nombres AS nombre,
 						sga_personas.nro_inscripcion,
-                                                sga_personas.nro_documento,
-                                                sga_alumnos.legajo,
+                        sga_personas.nro_documento,
+                        sga_alumnos.legajo,
 						vw_datos_censales_actuales.e_mail, 
-                                                sga_personas.fecha_nacimiento 
+                        sga_personas.fecha_nacimiento 
                                                 
 						FROM sga_alumnos, sga_personas, sga_carreras, vw_datos_censales_actuales
 						WHERE 
@@ -1254,28 +1187,6 @@ class MisConsultas {
 			return $sql;
 		}
 
-		static function getAlumnosPosgrado($filtro)
-		{
-			$db = MisConsultas::getConexionPostgrado();
-			
-			$sql = MisConsultas::buildSQLAlumnos();
-			
-			if (isset($filtro['departamento']))
-			{
-				$sql .= MisConsultas::getAlumnosAddFiltroDepartamento($filtro['departamento']);
-			}							
-			
-			if (isset($filtro['busqueda']))
-			{
-				$sql .= MisConsultas::getAlumnosAddFiltroBusqueda($filtro);
-			}
-								
-			$alumnos = $db->query($sql)->fetchAll(PDO::FETCH_ASSOC);
-			$alumnos = self::addFakeId($alumnos);
-			
-			return $alumnos;
-		}
-		
 		static function getAlumnos($filtro)
 		{
 			$db = MisConsultas::getConexion();
@@ -1307,139 +1218,41 @@ class MisConsultas {
 			return $alumnos;
 		}
                 
-		static function getTipoConexion($esGrado)
-		{
-			if ($esGrado)
-			{
-				$db = MisConsultas::getConexion();
-			} else
-			{
-				$db = MisConsultas::getConexionPostgrado();
-			}
-			return $db;
-		}
+	
+    static function getHistoriaAcademica($parametros)
+    {
+        $nro_inscripcion = $parametros['NRO_INSCRIPCION'];
+        
+        $db = MisConsultas::getConexion();
+        $ua = UNIDAD_ACAD;
+        
+        $sql = "EXECUTE PROCEDURE sp_fichaluhisacad( '$ua', '$nro_inscripcion' )";
+        
+        $historia = $db->query($sql)->fetchAll();
+        $historia = self::addFakeId($historia);
 
-		static function getUnidadAcademica($esGrado)
-		{
-			if ($esGrado)
-			{
-				$ua = 'EXA';
-			} else
-			{
-				$ua = 'EXAP';
-			}
-			return $ua;
-		}
-		
-        static function getHistoriaAcademica($parametros, $esGrado = true)
-        {
-            $nro_inscripcion = $parametros['NRO_INSCRIPCION'];
-            
-            $db = MisConsultas::getTipoConexion($esGrado);
-            $ua = MisConsultas::getUnidadAcademica($esGrado);
-            
-            $sql = "EXECUTE PROCEDURE sp_fichaluhisacad( '$ua', '$nro_inscripcion' )";
-            
-            $historia = $db->query($sql)->fetchAll();
-            $historia = self::addFakeId($historia);
+        return $historia;
+    }
+        
+    static function getCarrerasPlan($parametros)
+    {
+        $nro_inscripcion = $parametros['NRO_INSCRIPCION'];
+        
+        $db = MisConsultas::getConexion();
+        
+        $sql = "SELECT  sga_carreras.nombre as carrera, sga_alumnos.plan, 
+                        sga_alumnos.fecha_ingreso, sga_alumnos.regular, sga_alumnos.calidad, 
+                        sga_carreras.carrera as carrera_codigo
+                FROM sga_alumnos, sga_carreras
+                WHERE sga_alumnos.carrera = sga_carreras.carrera
+                    AND nro_inscripcion = '$nro_inscripcion'";
+
+        $cursadas = $db->query($sql)->fetchAll();
+        $cursadas = self::addFakeId($cursadas);
+        return $cursadas;
+    }   
     
-            return $historia;
-            
-        }
-        
-        static function getCursadas($parametros, $esGrado = true)
-        {
-            $nro_inscripcion = $parametros['NRO_INSCRIPCION'];
 
-            $db = MisConsultas::getTipoConexion($esGrado);
-            
-            $sql = "SELECT sga_cursadas.materia,"
-                    . "sga_cursadas.fecha_regularidad,"
-                    . "sga_cursadas.resultado,"
-                    . "sga_cursadas.nota,"
-                    . "sga_cursadas.fin_vigencia_regul,"
-                    . "sga_cursadas.carrera,"
-                    . "sga_materias.nombre AS nombre_materia,"
-                    . "sga_carreras.nombre AS nombre_carrera"
-                    . " FROM sga_cursadas, sga_carreras, sga_materias, sga_alumnos"
-                    . " WHERE "
-                    . " sga_alumnos.nro_inscripcion = '$nro_inscripcion' "
-                    . " AND sga_alumnos.carrera = sga_cursadas.carrera"
-                    . " AND sga_alumnos.legajo = sga_cursadas.legajo"
-                    . " AND sga_cursadas.carrera = sga_carreras.carrera"
-                    . " AND sga_cursadas.materia = sga_materias.materia";
-
-            if (isset($parametros['CARRERA']))
-            {
-                $carrera = $parametros['CARRERA'];
-                $sql .= " AND sga_alumnos.carrera = '$carrera' ";
-            }
-            $cursadas = $db->query($sql)->fetchAll();
-            $cursadas = self::addFakeId($cursadas);
-    
-            return $cursadas;
-        }   
-
-        static function getInscripcionCursadas($parametros, $esGrado = true)
-        {
-            $nro_inscripcion = $parametros['NRO_INSCRIPCION'];
-
-            $db = MisConsultas::getTipoConexion($esGrado);
-            
-            $sql = "SELECT 	I.carrera, 
-                            CAR.nombre AS carrera_nombre,
-                            I.comision,
-                            M.materia,
-                            M.nombre AS materia_nombre,
-                            DECODE(I.calidad_insc, 'R', 'Regular', 'P', 'Promocional') AS calidad_insc,
-                            DECODE (I.estado, 'A', 'Aceptada', 'E', 'Aceptada c/excep', 'P', 'Pendiente', 'R', 'Rechazada') as estado
-                        FROM sga_insc_cursadas I
-                        JOIN sga_comisiones C ON (C.comision = I.comision)
-                        JOIN sga_periodos_lect P ON (P.anio_academico = C.anio_academico AND P.periodo_lectivo = C.periodo_lectivo)
-                        JOIN sga_materias M ON (M.materia = C.materia)
-                        JOIN sga_carreras CAR ON (I.carrera = CAR.carrera)
-                        WHERE I.legajo = '$nro_inscripcion'
-                        AND I.comision = C.comision 
-                        AND TODAY BETWEEN P.fecha_inicio AND P.fecha_fin ";
-
-            if (isset($parametros['CARRERA']))
-            {
-                $carrera = $parametros['CARRERA'];
-                $sql .= " AND I.carrera = '$carrera' ";
-            }
-            $insc_cursadas = $db->query($sql)->fetchAll();
-            $insc_cursadas = self::addFakeId($insc_cursadas);
-
-            return $insc_cursadas;
-        }   
-        
-        static function getCarrerasPlan($parametros, $esGrado = true)
-        {
-            $nro_inscripcion = $parametros['NRO_INSCRIPCION'];
-            
-            $db = MisConsultas::getTipoConexion($esGrado);
-            
-            $sql = "SELECT sga_carreras.nombre as carrera, sga_alumnos.plan, 
-                    sga_alumnos.fecha_ingreso, sga_alumnos.regular, sga_alumnos.calidad, 
-                    sga_carreras.carrera as carrera_codigo
-                    FROM sga_alumnos, sga_carreras
-                    WHERE 
-                            sga_alumnos.carrera = sga_carreras.carrera
-                            AND nro_inscripcion = '$nro_inscripcion';";
-
-            $cursadas = $db->query($sql)->fetchAll();
-            $cursadas = self::addFakeId($cursadas);
-            return $cursadas;
-        }   
-        
-        //devuelve el porcentaje de avance de un alumno en una determinada carrera
-        static function add_porcentaje_avance($nro_inscripcion, $carrera, $esGrado = true)
-        {
-            $db = MisConsultas::getTipoConexion($esGrado);
-            $sql = "EXECUTE PROCEDURE sp_porc_exa('EXA', '$carrera', '$nro_inscripcion')";
-            $porc_avance = $db->query($sql)->fetchAll();
-            return $porc_avance[0][0];                    
-        }
 
         /**
          * Resultados para mesa - carrera - A, R,U
@@ -1696,7 +1509,3 @@ class MisConsultas {
         }                
 
     }
-
-        
-        
-?>

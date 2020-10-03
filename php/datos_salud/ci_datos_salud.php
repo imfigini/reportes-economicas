@@ -43,23 +43,10 @@ class ci_datos_salud extends toba_ci
 
 	//-----------------------------------------------------------------------------
 
-	static function get_conexion($base)
-	{
-		switch($base)
-		{
-			case 'siu_guarani_ingr': 
-				return MisConsultas::getConexionMini();
-			case 'siu_guarani': 
-				return MisConsultas::getConexion();
-		}
-		return null;
-	}
-
 	function get_datos_salud($filtro)
 	{
 //		ei_arbol($filtro);
-		$base = $filtro['base'];
-		$db = self::get_conexion($base);
+		$db = MisConsultas::getConexion();
 
 		$sql = "SELECT DISTINCT 
 					S.nombre AS sede,
@@ -97,7 +84,7 @@ class ci_datos_salud extends toba_ci
 		if (isset($filtro['carrera']))
 		{
 			$carrera = $filtro['carrera'];
-			$sql .= " AND A.carrera = $carrera ";
+			$sql .= " AND A.carrera = '$carrera' ";
 		}
 		if (isset($filtro['descripcion']))
 		{
@@ -110,22 +97,21 @@ class ci_datos_salud extends toba_ci
 		return $db->query($sql)->fetchAll(PDO::FETCH_ASSOC);
 	}
 
-	static function get_carreras($base) 
+	static function get_carreras() 
     {
-		$db = self::get_conexion($base);
+		$db = MisConsultas::getConexion();
         $sqlText = "SELECT carrera, nombre || ' (' || carrera || ')' AS nombre 
                         FROM sga_carreras 
                         WHERE estado = 'A'
-                                AND carrera <> 290
                         ORDER BY nombre;";
 
         return $db->query($sqlText)->fetchAll(PDO::FETCH_ASSOC);
 	}	
 
 	
-	static function get_anios($base)
+	static function get_anios()
 	{
-		$db = self::get_conexion($base);
+		$db = MisConsultas::getConexion();
 		$sql = 'SELECT anio_academico FROM sga_anio_academico ORDER BY 1 DESC';
 		return $db->query($sql);
 	}

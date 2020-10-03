@@ -52,7 +52,7 @@ class ci_notificar_falta_encuesta extends toba_ci
 			{
 				if (isset($dato['E_MAIL']) AND $dato['E_MAIL'] <> '')
 				{	
-					if (DESARROLLO)
+					//if (DESARROLLO)
 					{
 						$dato['E_MAIL'] = 'imfigini@exa.unicen.edu.ar';					//Esta línea sacarla en producción
 						//$dato['E_MAIL'] = 'mariano.andres.martinez@gmail.com';			//Esta línea sacarla en producción

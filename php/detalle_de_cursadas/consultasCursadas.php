@@ -14,10 +14,11 @@ class ConsultasCursadas
                                 AND P.estado = 'V'";    //Activo Vigente
         if (isset($carrera))
         {
-            $sqlText .= " AND P.carrera = $carrera";
+            $sqlText .= " AND P.carrera = '$carrera'";
         }
 
         $sqlText .= " ORDER BY nombre";
+        ei_arbol($sql);
         $db = MisConsultas::getConexion ();
         $materias = $db->query($sqlText)->fetchAll(PDO::FETCH_ASSOC);
         return $materias;
